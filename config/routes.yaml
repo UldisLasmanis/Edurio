@@ -4,7 +4,12 @@ add:
     path: /add
     controller: App\Controller\ApiController::add
 
-csv:
+csv_api:
     path: dbs/foo/tables/{tableName}/csv
     controller: App\Controller\ApiController::csvApi
+    methods: GET
+
+json_api:
+    path: dbs/foo/tables/{tableName}/json
+    controller: App\Controller\ApiController::jsonApi
     methods: GET

@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
+use App\Repository\SourceRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -50,7 +54,7 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/dbs/foo/tables/{tableName}/csv", name="csv", methods={"GET"})
+     * @Route("/dbs/foo/tables/{tableName}/csv", name="csv_api", methods={"GET"})
      * @param string $tableName
      * @return Response
      */
@@ -72,7 +76,7 @@ class ApiController extends AbstractController
         /** @var Connection $conn */
         $conn = $this->getDoctrine()->getConnection();
 
-        $query = "SELECT * FROM source ORDER BY a ASC LIMIT 100000";
+        $query = "SELECT * FROM source ORDER BY a ASC";
         $stmt = $conn->prepare($query);
         $stmt->bindParam('1', $tableName);
         $stmt->execute();
@@ -98,6 +102,53 @@ class ApiController extends AbstractController
         fclose($f);
 
         return $response;
+    }
+
+    /**
+     * @Route("/dbs/foo/tables/{tableName}/json", name="json_api", methods={"GET"})
+     * @param Request $request
+     * @param string $tableName
+     * @return Response
+     */
+    public function jsonApi(Request $request, string $tableName): Response
+    {
+        $tableExists = $this->checkIfTableExists($tableName);
+        if (false === $tableExists) {
+            return new JsonResponse('Table `' . $tableName . '` does not exist!', 404);
+        }
+
+        $itemsPerPage = $request->query->get('page_size');
+        $pageNr = $request->query->get('page');
+
+        if (false === isset($itemsPerPage)) {
+            return new JsonResponse('Missing `page_size` parameter', 400);
+        }
+        if ($itemsPerPage <= 0 || $itemsPerPage > 50000) {
+            return new JsonResponse('Parameter `page_size` value should be between 1 and 50000', 422);
+        }
+
+        if (false === isset($pageNr)) {
+            return new JsonResponse('Missing `page` parameter', 400);
+        }
+
+        $offset = ($itemsPerPage * $pageNr) - $itemsPerPage;
+        $limit = $itemsPerPage;
+
+        /** @var Connection $conn */
+        $conn = $this->getDoctrine()->getConnection();
+
+        $query = "SELECT * FROM source ORDER BY a ASC LIMIT :limit OFFSET :offset";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam('limit', $limit, ParameterType::INTEGER);
+        $stmt->bindParam('offset', $offset, ParameterType::INTEGER);
+        $stmt->execute();
+        $records = $stmt->fetchAllNumeric();
+
+        if (true === empty($records)) {
+            return new JsonResponse('No data', 404);
+        }
+
+        return new JsonResponse($records);
     }
 
     public function checkIfTableExists(string $tableName): bool
