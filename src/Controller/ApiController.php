@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\SourceRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query;
@@ -73,13 +74,24 @@ class ApiController extends AbstractController
         /** @var JsonResponse $response */
         $response = new JsonResponse();
 
-        /** @var Connection $conn */
-        $conn = $this->getDoctrine()->getConnection();
+        /** @var EntityManager $em */
+        $em = $this->getDoctrine()->getManager();
+        /** @var SourceRepository $sourceRepository */
+        $sourceRepository = $em->getRepository('App:Source');
 
-        $query = "SELECT * FROM source ORDER BY a ASC";
-        $stmt = $conn->prepare($query);
-        $stmt->execute();
-        $records = $stmt->fetchAllNumeric();
+        $csvDataQuery = $sourceRepository
+            ->createQueryBuilder('source')
+            ->orderBy('source.a', 'ASC');
+
+        $appEnv = $_ENV['APP_ENV'];
+        if ($appEnv === 'test') {
+            $csvDataQuery->setMaxResults(1);
+        }
+
+        $records = $csvDataQuery
+            ->getQuery()
+            ->getArrayResult();
+
         if (true === empty($records)) {
             $response->setData('No data');
             $response->setStatusCode(404);
@@ -135,8 +147,8 @@ class ApiController extends AbstractController
         /** @var SourceRepository $sourceRepository */
         $sourceRepository = $this->getDoctrine()->getRepository('App:Source');
 
-        $records = $sourceRepository->createQueryBuilder('s')
-            ->orderBy('s.a', 'ASC')
+        $records = $sourceRepository->createQueryBuilder('source')
+            ->orderBy('source.a', 'ASC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
