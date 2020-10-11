@@ -1,1 +1,5 @@
 # config/routes.yaml
+
+add:
+    path: /add
+    controller: App\Controller\ApiController::add
