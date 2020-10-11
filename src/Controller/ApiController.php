@@ -4,9 +4,9 @@ namespace App\Controller;
 
 use App\Repository\SourceRepository;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Query;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -78,7 +78,6 @@ class ApiController extends AbstractController
 
         $query = "SELECT * FROM source ORDER BY a ASC";
         $stmt = $conn->prepare($query);
-        $stmt->bindParam('1', $tableName);
         $stmt->execute();
         $records = $stmt->fetchAllNumeric();
         if (true === empty($records)) {
@@ -93,7 +92,6 @@ class ApiController extends AbstractController
         $response->sendHeaders();
 
         // open the "output" stream
-        // see http://www.php.net/manual/en/wrappers.php.php#refsect2-wrappers.php-unknown-unknown-unknown-descriptioq
         $f = fopen('php://output', 'w');
 
         foreach ($records as $line) {
@@ -134,15 +132,15 @@ class ApiController extends AbstractController
         $offset = ($itemsPerPage * $pageNr) - $itemsPerPage;
         $limit = $itemsPerPage;
 
-        /** @var Connection $conn */
-        $conn = $this->getDoctrine()->getConnection();
+        /** @var SourceRepository $sourceRepository */
+        $sourceRepository = $this->getDoctrine()->getRepository('App:Source');
 
-        $query = "SELECT * FROM source ORDER BY a ASC LIMIT :limit OFFSET :offset";
-        $stmt = $conn->prepare($query);
-        $stmt->bindParam('limit', $limit, ParameterType::INTEGER);
-        $stmt->bindParam('offset', $offset, ParameterType::INTEGER);
-        $stmt->execute();
-        $records = $stmt->fetchAllNumeric();
+        $records = $sourceRepository->createQueryBuilder('s')
+            ->orderBy('s.a', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         if (true === empty($records)) {
             return new JsonResponse('No data', 404);

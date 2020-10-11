@@ -20,16 +20,16 @@ class Source
     private $a;
 
     /**
-     * @var bool
+     * @var smallint
      *
-     * @ORM\Column(name="b", type="boolean", nullable=false)
+     * @ORM\Column(name="b", type="smallint", nullable=false)
      */
     private $b;
 
     /**
-     * @var bool
+     * @var smallint
      *
-     * @ORM\Column(name="c", type="boolean", nullable=false)
+     * @ORM\Column(name="c", type="smallint", nullable=false)
      */
     private $c;
 
