@@ -8,6 +8,24 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ApiControllerTest extends WebTestCase
 {
+    public function testAddedHeaderCsvApi()
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/dbs/foo/tables/source/csv');
+
+        $this->assertTrue($client->getResponse()->headers->contains('Content-Encoding', 'chunked'));
+    }
+
+    public function testNonExistingTableNameCsvApi()
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/dbs/foo/tables/someothertable/csv');
+
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
+    }
+
     public function testNonExistingTableNameJsonApi()
     {
         $client = static::createClient();
