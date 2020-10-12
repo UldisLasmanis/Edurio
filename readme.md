@@ -24,16 +24,13 @@ To see JSON API, open:
 To see CSV API, open:
 > localhost:8080/dbs/foo/tables/source/csv
 
-To run tests, run command (It will download packages on first run): 
-> ./bin/phpunit
-
 To see database, open:
 > localhost:8081 
 
 
 # Testing
 Unfortunately I didnt manage to successfully run tests on Docker containers, 
-because some additional PHPStorm configurations needs to be done in order for tests to run accordingly.
+because of Docker DB connection issues and some additional PHPStorm configurations needs to be done in order for tests to run accordingly.
 Tests can be executed outside Docker env.
 
 Edit etc/hosts file:
@@ -69,7 +66,7 @@ Run Doctrine migration to create empty table `source` in database `foo`:
 Fill `source` table with data:
 > edurio.test/add
 
-Run tests:
+To run tests, run command (It will download packages on first run): 
 > ./bin/phpunit
 
  
