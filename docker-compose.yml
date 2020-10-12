@@ -1,0 +1,45 @@
+version: '3'
+services:
+  apache:
+    build: .docker/apache
+    container_name: edurio_apache
+    ports:
+      - 8080:80
+    volumes:
+      - .docker/config/vhosts:/etc/apache2/sites-enabled
+      - .:/home/wwwroot/edurio
+    depends_on:
+      - php
+
+  mysql:
+    image: mysql:8
+    container_name: edurio_mysql
+#    volumes:
+#      - .docker/data/db:/var/lib/mysql
+    command:
+      - "--default-authentication-plugin=mysql_native_password"
+      - "--lower_case_table_names=1"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: foo
+      MYSQL_USER: edurio
+      MYSQL_PASSWORD: edurio
+
+  php:
+    build: .docker/php
+    container_name: edurio_php
+    volumes:
+      - .:/home/wwwroot/edurio
+    depends_on:
+      - mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: edurio_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - 8081:80
+    links:
+      - mysql
