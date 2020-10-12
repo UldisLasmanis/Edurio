@@ -17,11 +17,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class ApiController extends AbstractController
 {
 
-    public function test(): Response
-    {
-        return new JsonResponse('xss');
-    }
-
     public function add(): Response
     {
         set_time_limit(60);
@@ -62,9 +57,6 @@ class ApiController extends AbstractController
     public function csvApi(string $tableName): Response
     {
         ini_set('memory_limit', '512M');
-        if (false === isset($tableName)) {
-            return new JsonResponse('Missing table name definition in url path', 404);
-        }
 
         $tableExists = $this->checkIfTableExists($tableName);
         if (false === $tableExists) {
@@ -73,7 +65,6 @@ class ApiController extends AbstractController
 
         /** @var JsonResponse $response */
         $response = new JsonResponse();
-
         /** @var EntityManager $em */
         $em = $this->getDoctrine()->getManager();
         /** @var SourceRepository $sourceRepository */
@@ -83,6 +74,7 @@ class ApiController extends AbstractController
             ->createQueryBuilder('source')
             ->orderBy('source.a', 'ASC');
 
+        //Only return 1 records instead of 1kk, if it's a test
         $appEnv = $_ENV['APP_ENV'];
         if ($appEnv === 'test') {
             $csvDataQuery->setMaxResults(1);

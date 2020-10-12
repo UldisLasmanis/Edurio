@@ -4,10 +4,28 @@
 namespace App\Tests\Controller;
 
 
+use App\Repository\SourceRepository;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ApiControllerTest extends WebTestCase
 {
+
+    public function testRecordCount()
+    {
+        /** @var EntityManager $em */
+        $em = $this->getEntityManager();
+        /** @var SourceRepository $sourceRepository */
+        $sourceRepository = $em->getRepository('App:Source');
+        $recordsCount = $sourceRepository->createQueryBuilder('source')
+            ->select('COUNT(source.a) AS cnt')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $this->assertEquals(1000000, $recordsCount);
+    }
+
     public function testAddedHeaderCsvApi()
     {
         $client = static::createClient();
@@ -116,5 +134,17 @@ class ApiControllerTest extends WebTestCase
 
             $this->assertEquals($receivedObjectCount, $params['expected_count']);
         }
+    }
+
+    /**
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        self::bootKernel();
+        return self::$kernel
+            ->getContainer()
+            ->get('doctrine')
+            ->getManager();
     }
 }
