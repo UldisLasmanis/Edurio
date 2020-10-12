@@ -37,7 +37,7 @@ because some additional PHPStorm configurations needs to be done in order for te
 Tests can be executed outside Docker env.
 
 Edit etc/hosts file:
-> 127.0.0.1 localhost
+> 127.0.0.1 edurio.test
 
 Edit Apache2 available sites configurations at etc/apache2/sites-available:
 > <VirtualHost *:80>
