@@ -37,7 +37,8 @@ Edit etc/hosts file:
 > 127.0.0.1 edurio.test
 
 Edit Apache2 available sites configurations at etc/apache2/sites-available:
-> <VirtualHost *:80>
+```
+<VirtualHost *:80>
        ServerAdmin admin@example.com
        DocumentRoot /var/www/html/Edurio/public
        ServerName edurio.test
@@ -53,7 +54,7 @@ Edit Apache2 available sites configurations at etc/apache2/sites-available:
        ErrorLog ${APACHE_LOG_DIR}/error.log
        CustomLog ${APACHE_LOG_DIR}/access.log combined
   </VirtualHost>
-
+```
 Run this command, if `docker-compose up -d` was already executed:
 > docker-compose down
 
